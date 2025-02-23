@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Signup from "./components/Signup";
 import Login from "./components/Login";
-import Dashboard from "./components/Dashboard";
+// import Dashboard from "./components/Dashboard";
+import Homepage from "./components/Homepage";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Link } from "react-router-dom";
@@ -23,10 +24,11 @@ function App() {
           <Route path="/" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route
-            path="/dashboard"
+            path="/Homepage"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                {/* <Dashboard /> */}
+                {<Homepage />}
               </ProtectedRoute>
             }
           />

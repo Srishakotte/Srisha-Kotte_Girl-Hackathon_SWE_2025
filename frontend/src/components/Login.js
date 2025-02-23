@@ -23,7 +23,7 @@ const Login = () => {
   const onSubmit = async (data) => {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      navigate("/dashboard");
+      navigate("/Homepage");
     } catch (error) {
       alert(error.message);
     }
