@@ -11,7 +11,18 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
+// Add debug logging
+console.log("Firebase config (without sensitive data):", {
+  authDomain: firebaseConfig.authDomain,
+  projectId: firebaseConfig.projectId,
+  storageBucket: firebaseConfig.storageBucket,
+});
+
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Verify initialization
+console.log("Firebase initialized:", !!app);
+console.log("Firestore initialized:", !!db);
 
