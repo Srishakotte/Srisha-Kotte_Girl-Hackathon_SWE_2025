@@ -1,69 +1,80 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { auth } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
-const schema = z.object({
-  email: z.string().email({ message: "Invalid email" }),
-  password: z.string().min(6, { message: "Password must be at least 6 chars" }),
-});
-
-const Signup = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({ resolver: zodResolver(schema) });
-
+const SignUp = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const onSubmit = async (data) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    
     try {
-      await createUserWithEmailAndPassword(auth, data.email, data.password);
-      navigate("/dashboard");
+      const auth = getAuth();
+      await createUserWithEmailAndPassword(auth, email, password);
+      // On successful signup, user will be automatically redirected to homepage
+      // due to the auth state change and route protection in App.js
     } catch (error) {
-      alert(error.message);
+      setError(error.message);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center">Create Your Tax Assistant Account</h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-          <input
-            {...register("email")}
-            placeholder="Email"
-            className="p-2 border rounded"
-          />
-          {errors.email && <p className="text-red-500">{errors.email.message}</p>}
-
-          <input
-            type="password"
-            {...register("password")}
-            placeholder="Password"
-            className="p-2 border rounded"
-          />
-          {errors.password && (
-            <p className="text-red-500">{errors.password.message}</p>
-          )}
-
-          <button className="bg-blue-500 text-white px-4 py-2 rounded">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-800 to-blue-900">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-96">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h2>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 mb-2">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              required
+            />
+          </div>
+          
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded hover:from-purple-700 hover:to-indigo-700 transition-all duration-200"
+          >
             Sign Up
           </button>
         </form>
-        <p className="mt-4 text-center text-gray-600">
-          Already have an account?{" "}
-          <Link to="/login" className="text-blue-500 hover:text-blue-600">
-            Login here
-          </Link>
-        </p>
+        
+        <div className="mt-4 text-center">
+          <p className="text-gray-600">
+            Already have an account?{" "}
+            <Link to="/login" className="text-purple-600 hover:text-purple-800 font-medium">
+              Login here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Signup;
+export default SignUp;

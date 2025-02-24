@@ -1,0 +1,136 @@
+.history-container {
+  @apply min-h-screen bg-gray-50;
+}
+
+.navbar {
+  @apply fixed top-0 left-0 right-0 bg-white shadow-md z-50;
+  height: 64px;
+}
+
+.navbar-inner {
+  @apply max-w-7xl mx-auto px-6 h-full flex justify-between items-center;
+}
+
+.navbar-title {
+  @apply text-2xl font-bold;
+  background: linear-gradient(120deg, #4F46E5, #3B82F6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.navbar-button {
+  @apply px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 
+         transition-all duration-200 transform hover:-translate-y-0.5;
+}
+
+.history-content {
+  @apply max-w-7xl mx-auto px-6 pt-24 pb-12;
+}
+
+.history-table-container {
+  @apply bg-white rounded-xl shadow-lg overflow-hidden;
+  animation: slideIn 0.5s ease-out;
+}
+
+.history-table {
+  @apply w-full border-collapse;
+}
+
+.history-table th {
+  @apply px-6 py-4 bg-gray-50 text-left text-sm font-semibold text-gray-700;
+  background: linear-gradient(to right, #f3f4f7, #e5e7eb);
+}
+
+.history-table td {
+  @apply px-6 py-4 text-sm text-gray-600 border-b border-gray-100;
+}
+
+.history-table tr:hover {
+  @apply bg-indigo-50 transition-colors duration-150;
+}
+
+.download-button-small {
+  @apply px-3 py-1 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 
+         transition-all duration-200 transform hover:-translate-y-0.5;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .history-table-container {
+    @apply overflow-x-auto;
+  }
+  
+  .history-table {
+    @apply min-w-[800px];
+  }
+}
+
+.income-detail-item {
+  @apply text-sm py-1;
+}
+
+.suggestions-list {
+  @apply text-sm list-disc pl-4 space-y-1;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.loading-state {
+  @apply flex flex-col items-center justify-center p-12 space-y-4;
+}
+
+.spinner {
+  @apply w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-state {
+  @apply text-center py-12 space-y-4;
+}
+
+.analyze-button {
+  @apply px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 
+         transition-all duration-200 transform hover:-translate-y-0.5;
+}
+
+/* Enhanced table styles for better readability */
+.history-table td {
+  @apply align-top;
+  max-width: 250px;
+}
+
+.history-table td > div {
+  @apply truncate;
+}
+
+.history-table tr:hover {
+  @apply bg-indigo-50;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .history-table-container {
+    @apply overflow-x-auto;
+  }
+  
+  .history-table {
+    @apply min-w-[1000px];
+  }
+}

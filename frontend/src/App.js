@@ -1,40 +1,60 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Signup from "./components/Signup";
-import Login from "./components/Login";
-// import Dashboard from "./components/Dashboard";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Homepage from "./components/Homepage";
-import { AuthProvider } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { Link } from "react-router-dom";
+import Login from "./components/Login";
+import SignUp from "./components/Signup";
+import TaxAssistant from "./components/TaxAssistant";
+import TaxHistory from "./components/TaxHistory";
+import { auth } from "./firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <AuthProvider>
-      <Router>
-        <nav className="bg-gray-800 p-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-white text-xl font-bold">Tax Assistant</h1>
-            <div className="space-x-4">
-              <Link to="/" className="text-white hover:text-gray-300">Sign Up</Link>
-              <Link to="/login" className="text-white hover:text-gray-300">Login</Link>
-            </div>
-          </div>
-        </nav>
+    <Router>
+      <div className="App">
         <Routes>
-          <Route path="/" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/Homepage"
-            element={
-              <ProtectedRoute>
-                {/* <Dashboard /> */}
-                {<Homepage />}
-              </ProtectedRoute>
-            }
+          <Route 
+            path="/" 
+            element={<SignUp />} 
+          />
+          
+          <Route 
+            path="/login" 
+            element={<Login />} 
+          />
+
+          <Route 
+            path="/home" 
+            element={<Homepage />} 
+          />
+
+          <Route 
+            path="/tax-assistant" 
+            element={user ? <TaxAssistant /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/tax-history" 
+            element={user ? <TaxHistory /> : <Navigate to="/tax-assistant" />} 
           />
         </Routes>
-      </Router>
-    </AuthProvider>
+      </div>
+    </Router>
   );
 }
 
