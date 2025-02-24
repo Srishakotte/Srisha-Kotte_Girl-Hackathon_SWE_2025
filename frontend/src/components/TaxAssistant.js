@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import './TaxAssistant.css';
 
 const TaxAssistant = () => {
@@ -22,46 +24,69 @@ const TaxAssistant = () => {
     return incomeMap;
   };
 
-  const handleAnalyze = () => {
-    const incomeMap = parseIncomeText(incomeText);
-    
-    // AI Analysis simulation
-    const mockAnalysis = {
-      incomeClassification: {
-        taxable: {
-          'Salary': incomeMap['Salary'] || 0,
-          'Freelance Income': incomeMap['Freelance Income'] || 0,
-          'Rental Income': incomeMap['Rent'] || 0,
-        },
-        nonTaxable: {
-          'Investment Returns': incomeMap['Investment'] || 0,
-          'Health Insurance Premium': incomeMap['Health Insurance'] || 0,
-        }
-      },
-      suggestions: [
-        {
-          type: "Salary Structure",
-          suggestion: "Consider restructuring salary to include more tax-exempt components",
-          impact: "Potential tax saving up to ₹50,000"
-        },
-        {
-          type: "Investment",
-          suggestion: "Increase investment in ELSS funds for tax benefits",
-          impact: "Additional tax saving of ₹15,000"
-        },
-        {
-          type: "Health Insurance",
-          suggestion: "Increase health coverage for higher 80D benefits",
-          impact: "Extra deduction of ₹25,000 possible"
-        },
-        {
-          type: "Freelance Income",
-          suggestion: "Maintain proper documentation of expenses for deductions",
-          impact: "Can reduce taxable income by 30%"
-        }
-      ]
-    };
-    setAnalysis(mockAnalysis);
+  const handleAnalyze = async () => {
+    try {
+      const incomeMap = parseIncomeText(incomeText);
+      console.log("Parsed Income Data:", incomeMap);
+
+      if (Object.keys(incomeMap).length === 0) {
+        alert("Please enter valid income details");
+        return;
+      }
+
+      // Calculate totals and classifications
+      const totalIncome = Object.values(incomeMap).reduce((sum, val) => sum + val, 0);
+      
+      const taxableIncome = {
+        Salary: incomeMap['Salary'] || 0,
+        'Freelance Income': incomeMap['Freelance Income'] || 0,
+        'Rental Income': incomeMap['Rent'] || 0
+      };
+
+      const nonTaxableIncome = {
+        'Investment': incomeMap['Investment'] || 0,
+        'Health Insurance': incomeMap['Health Insurance'] || 0
+      };
+
+      const totalTaxableIncome = Object.values(taxableIncome).reduce((sum, val) => sum + val, 0);
+      const totalNonTaxableIncome = Object.values(nonTaxableIncome).reduce((sum, val) => sum + val, 0);
+
+      const analysisResult = {
+        timestamp: serverTimestamp(),
+        incomeDetails: incomeMap,
+        taxableIncome,
+        nonTaxableIncome,
+        totalIncome,
+        totalTaxableIncome,
+        totalNonTaxableIncome,
+        suggestions: [
+          {
+            type: "Investment",
+            suggestion: "Consider tax-saving ELSS mutual funds",
+            impact: "Can save up to ₹46,800 in taxes"
+          },
+          {
+            type: "Tax Planning",
+            suggestion: "Invest in PPF for tax-free returns",
+            impact: "Tax-free interest earnings"
+          }
+        ]
+      };
+
+      console.log("Saving analysis result:", analysisResult); // Debug log
+
+      // Save to Firestore
+      const docRef = await addDoc(collection(db, 'tax_records'), analysisResult);
+      console.log("Document written with ID: ", docRef.id);
+      
+      // Update local state
+      setAnalysis(analysisResult);
+      
+      alert("Tax analysis saved successfully!");
+    } catch (error) {
+      console.error("Detailed error:", error); // More detailed error logging
+      alert(`Error saving tax analysis: ${error.message}`);
+    }
   };
 
   return (
@@ -126,7 +151,7 @@ Freelance Income: 200000"
                         </tr>
                       </thead>
                       <tbody>
-                        {Object.entries(analysis.incomeClassification.taxable).map(([source, amount]) => (
+                        {Object.entries(analysis.taxableIncome || {}).map(([source, amount]) => (
                           amount > 0 && (
                             <tr key={source}>
                               <td>{source}</td>
@@ -138,10 +163,7 @@ Freelance Income: 200000"
                       <tfoot>
                         <tr className="total-row">
                           <td>Total Taxable Income</td>
-                          <td>₹{Object.values(analysis.incomeClassification.taxable)
-                                .reduce((sum, val) => sum + val, 0)
-                                .toLocaleString('en-IN')}
-                          </td>
+                          <td>₹{analysis.totalTaxableIncome.toLocaleString('en-IN')}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -159,7 +181,7 @@ Freelance Income: 200000"
                         </tr>
                       </thead>
                       <tbody>
-                        {Object.entries(analysis.incomeClassification.nonTaxable).map(([source, amount]) => (
+                        {Object.entries(analysis.nonTaxableIncome || {}).map(([source, amount]) => (
                           amount > 0 && (
                             <tr key={source}>
                               <td>{source}</td>
@@ -171,10 +193,7 @@ Freelance Income: 200000"
                       <tfoot>
                         <tr className="total-row">
                           <td>Total Non-Taxable Income</td>
-                          <td>₹{Object.values(analysis.incomeClassification.nonTaxable)
-                                .reduce((sum, val) => sum + val, 0)
-                                .toLocaleString('en-IN')}
-                          </td>
+                          <td>₹{analysis.totalNonTaxableIncome.toLocaleString('en-IN')}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -184,7 +203,7 @@ Freelance Income: 200000"
                 <div className="analysis-card animate-card">
                   <h3 className="card-title">Personalized Tax Suggestions</h3>
                   <div className="suggestions-container">
-                    {analysis.suggestions.map((suggestion, index) => (
+                    {analysis.suggestions && analysis.suggestions.map((suggestion, index) => (
                       <div key={index} className="suggestion-item">
                         <div className="suggestion-header">
                           <span className="suggestion-type">{suggestion.type}</span>
