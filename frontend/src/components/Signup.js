@@ -1,3 +1,5 @@
+
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
@@ -23,51 +25,53 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-800 to-blue-900">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h2>
+    <div className="flex items-center justify-center min-h-screen p-6 bg-gray-900">
+      <div className="w-full max-w-md p-8 bg-gray-800 border border-gray-700 rounded-lg">
+        <h2 className="mb-6 text-2xl font-semibold text-center text-white">
+          Sign Up
+        </h2>
         
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="p-3 mb-4 text-white bg-red-600 rounded-md">
             {error}
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700 mb-2">Email</label>
+            <label className="block mb-2 text-gray-400">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full p-3 text-white placeholder-gray-400 transition-all duration-200 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:border-white"
               required
             />
           </div>
           
           <div>
-            <label className="block text-gray-700 mb-2">Password</label>
+            <label className="block mb-2 text-gray-400">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full p-3 text-white placeholder-gray-400 transition-all duration-200 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:border-white"
               required
             />
           </div>
           
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded hover:from-purple-700 hover:to-indigo-700 transition-all duration-200"
+            className="w-full px-4 py-3 font-medium text-black transition-all duration-200 bg-white rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900"
           >
             Sign Up
           </button>
         </form>
         
-        <div className="mt-4 text-center">
-          <p className="text-gray-600">
+        <div className="mt-6 text-center">
+          <p className="text-gray-400">
             Already have an account?{" "}
-            <Link to="/login" className="text-purple-600 hover:text-purple-800 font-medium">
+            <Link to="/login" className="font-medium text-white transition-all duration-200 hover:text-gray-300">
               Login here
             </Link>
           </p>

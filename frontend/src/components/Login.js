@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
@@ -12,7 +13,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
+   
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/home");
@@ -22,42 +23,44 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-800 to-blue-900">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
-        
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
+      <div className="bg-gray-800 rounded-lg border border-gray-700 p-8 w-full max-w-md">
+        <h2 className="text-2xl font-semibold text-white text-center mb-6">
+          Login
+        </h2>
+       
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-3 bg-red-600 text-white rounded-md">
             {error}
           </div>
         )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
+       
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700 mb-2">Email</label>
+            <label className="block text-gray-400 mb-2">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full p-3 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-white focus:border-white transition-all duration-200"
               required
             />
           </div>
-          
+         
           <div>
-            <label className="block text-gray-700 mb-2">Password</label>
+            <label className="block text-gray-400 mb-2">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full p-3 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-white focus:border-white transition-all duration-200"
               required
             />
           </div>
-          
+         
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded hover:from-purple-700 hover:to-indigo-700 transition-all duration-200"
+            className="w-full py-3 px-4 bg-white text-black rounded-md font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200"
           >
             Login
           </button>

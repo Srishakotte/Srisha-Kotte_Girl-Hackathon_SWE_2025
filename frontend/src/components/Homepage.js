@@ -16,39 +16,21 @@ const Homepage = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen flex flex-col items-center justify-center relative"
-      style={{
-        backgroundImage: `url(https://i.pinimg.com/736x/b7/6f/19/b76f19610efb95d9d63f54e9bd42e958.jpg)`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      {/* Gradient Overlay */}
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(to bottom right, rgba(88, 28, 135, 0.8), rgba(79, 70, 229, 0.6))',
-          backdropFilter: 'blur(2px)'
-        }}
-      />
-
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900">
       {/* Content */}
-      <div className="relative z-10 text-center text-white p-8 rounded-lg max-w-2xl w-full bg-white/10 backdrop-blur-sm">
-        <h1 className="text-5xl font-bold mb-6 animate-fade-in">
-          AI Tax Assistant
+      <div className="text-center text-white p-8 rounded-lg max-w-2xl w-full bg-gray-800 border border-gray-700">
+        <h1 className="text-6xl font-bold mb-6">
+          FINTAX 
         </h1>
-        <p className="text-xl mb-12 text-gray-100">
-          Your intelligent companion for tax calculations and planning
+        <p className="text-xl mb-12 text-gray-300">
+          Your Financial coach for tax calculations and planning
         </p>
 
         {/* Action Buttons */}
         <div className="space-y-6">
           <button
             onClick={() => navigate("/tax-assistant")}
-            className="w-64 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold text-lg px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300"
+            className="w-64 bg-gray-100 text-black font-semibold text-lg px-8 py-3 rounded-md border border-gray-600 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200"
           >
             Open Tax Assistant
           </button>
@@ -56,7 +38,7 @@ const Homepage = () => {
           <div>
             <button
               onClick={handleLogout}
-              className="w-64 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-lg px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300"
+              className="w-64 bg-gray-100 text-black font-semibold text-lg px-8 py-3 rounded-md border border-gray-600 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200"
             >
               Logout
             </button>
@@ -64,7 +46,7 @@ const Homepage = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-16 text-gray-200 text-sm">
+        <div className="mt-16 text-gray-400 text-sm">
           <p>© 2024 AI Tax Assistant. All rights reserved.</p>
         </div>
       </div>
