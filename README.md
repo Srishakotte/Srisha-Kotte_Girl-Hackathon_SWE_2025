@@ -1,6 +1,6 @@
 # Srisha-Kotte_Girl-Hackathon_SWE_2025
 
-# FINTAX - Your AI-Powered Tax Filing Companion  ([https://tax-assistant-38242.web.app/])(Try FINTAX live! )
+# FINTAX - Your AI-Powered Tax Filing Companion  ([https://tax-assistant-38242.web.app/])   (Try FINTAX live! )
 Simplify taxes. Maximize savings. File with confidence.  
 
 ## Overview  
