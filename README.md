@@ -66,14 +66,23 @@ FINTAX is an AI-driven platform that makes tax filing accessible and efficient f
 ### Installation  
 1. Clone the Repository  
    ```bash  
-   git clone https://github.com/your-username/fintax.git  
-   cd fintax  
+   git clone https://github.com/Srishakotte/Srisha-Kotte_Girl-Hackathon_SWE_2025.git  
+   cd .\Srisha-Kotte_Girl-Hackathon_SWE_2025\
+   cd .\frontend\
    ```  
-
-2. Install Dependencies  
    ```bash  
    npm install  
+  npm install react-google-charts  
+   npm install react react-dom react-router-dom firebase @google/generative-ai jspdf jspdf-autotable  
+
    ```  
+Tailwind CSS (Optional)
+
+```bash
+
+npm install -D tailwindcss postcss autoprefixer  
+npx tailwindcss init -p
+```
 
 3. Set Up Environment Variables  
    Create a .env file:  
@@ -107,7 +116,7 @@ FINTAX is an AI-driven platform that makes tax filing accessible and efficient f
 
 ## Deployed Link  
 Try FINTAX live!  
-[(https://tax-assistant-38242.web.app/)]([https://tax-assistant-38242.web.app/]) (Update with your deployed URL)  
+[(https://tax-assistant-38242.web.app/)]([https://tax-assistant-38242.web.app/]) 
 
 ---
 
