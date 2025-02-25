@@ -72,7 +72,7 @@ FINTAX is an AI-driven platform that makes tax filing accessible and efficient f
    ```  
    ```bash  
    npm install  
-  npm install react-google-charts  
+   npm install react-google-charts  
    npm install react react-dom react-router-dom firebase @google/generative-ai jspdf jspdf-autotable  
 
    ```  
