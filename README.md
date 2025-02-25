@@ -1,16 +1,12 @@
 # Srisha-Kotte_Girl-Hackathon_SWE_2025
 
-# FINTAX - Your AI-Powered Tax Filing Companion  
+# FINTAX - Your AI-Powered Tax Filing Companion  ([https://tax-assistant-38242.web.app/])(Try FINTAX live! )
 Simplify taxes. Maximize savings. File with confidence.  
-
-FINTAX Banner (https://via.placeholder.com/800x200.png?text=FINTAX+Banner) (Add your project banner here!)  
-
----
 
 ## Overview  
 FINTAX is an AI-driven platform that makes tax filing accessible and efficient for all users. With features like manual data entry, intelligent tax form selection, auto-filled reports, and personalized insights, FINTAX empowers beginners and experienced filers alike. Say goodbye to tax stress and hello to smarter filing!
 
----
+
 
 ## Key Features  
 
