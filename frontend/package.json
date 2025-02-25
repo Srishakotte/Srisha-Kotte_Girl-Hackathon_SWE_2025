@@ -31,12 +31,15 @@
     "web-vitals": "^4.2.4",
     "zod": "^3.24.2"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
+  
+    "scripts": {
+      "start": "react-scripts start",
+      "build": "react-scripts build",
+      "test": "react-scripts test",
+      "eject": "react-scripts eject"
+    }
+  ,
+  
   "eslintConfig": {
     "extends": [
       "react-app",

@@ -28,6 +28,7 @@ const TaxAssistant = () => {
     { upTo: 1600000, rate: 0.15 },
     { upTo: 2000000, rate: 0.20 },
     { upTo: 2400000, rate: 0.25 },
+
     { upTo: Infinity, rate: 0.30 },
   ];
 
@@ -99,7 +100,7 @@ const TaxAssistant = () => {
 
   const generateTaxSuggestions = async (incomeDetails) => {
     try {
-      const genAI = new GoogleGenerativeAI("YOUR_API_KEY_HERE"); // Replace with your actual API key
+      const genAI = process.env.REACT_APP_GOOGLE_GENERATIVE_AI_API_KEY; // Replace with your actual API key
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
       const prompt = `Given these income details: ${JSON.stringify(
         incomeDetails
