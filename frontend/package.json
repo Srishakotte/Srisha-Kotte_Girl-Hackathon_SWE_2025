@@ -14,7 +14,8 @@
     "firebase": "^11.3.1",
     "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.10.2",
-    "jspdf": "^3.0.0",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "nth-check": "^2.1.1",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
@@ -31,15 +32,12 @@
     "web-vitals": "^4.2.4",
     "zod": "^3.24.2"
   },
-  
-    "scripts": {
-      "start": "react-scripts start",
-      "build": "react-scripts build",
-      "test": "react-scripts test",
-      "eject": "react-scripts eject"
-    }
-  ,
-  
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
