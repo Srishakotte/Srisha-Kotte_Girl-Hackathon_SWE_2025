@@ -15,13 +15,10 @@ const SignUp = () => {
     try {
       const auth = getAuth();
       await createUserWithEmailAndPassword(auth, email, password);
-      // On successful signup, navigate to login page
       navigate("/login");
-      // Optionally reset form fields (though not necessary since we redirect)
       setEmail("");
       setPassword("");
     } catch (error) {
-      // Handle specific Firebase error codes
       switch (error.code) {
         case "auth/email-already-in-use":
           setError("This email is already in use. Please log in or use a different email.");
@@ -39,55 +36,55 @@ const SignUp = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-6 bg-gray-900">
-      <div className="w-full max-w-md p-8 bg-gray-800 border border-gray-700 rounded-lg">
-        <h2 className="mb-6 text-2xl font-semibold text-center text-white">
+    <div className="flex items-center justify-center min-h-screen p-6 bg-gradient-to-br from-[#2A5C54] via-[#E6F0EA] to-[#FFFFFF]">
+      <div className="w-full max-w-md p-8 bg-white border border-[#FFBB77] rounded-lg shadow-lg">
+        <h2 className="mb-6 text-2xl font-semibold text-center text-[#FFBB77]">
           Sign Up
         </h2>
 
         {error && (
-          <div className="p-3 mb-4 text-white bg-red-600 rounded-md">
+          <div className="p-3 mb-4 text-white bg-[#FF6666] rounded-md">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block mb-2 text-gray-400">Email</label>
+            <label className="block mb-2 text-[#34C759]">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 text-white placeholder-gray-400 transition-all duration-200 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:border-white"
+              className="w-full p-3 text-[#2A5C54] placeholder-gray-400 transition-all duration-200 bg-white border border-[#34C759] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FFBB77] focus:border-[#FFBB77]"
               required
             />
           </div>
 
           <div>
-            <label className="block mb-2 text-gray-400">Password</label>
+            <label className="block mb-2 text-[#34C759]">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 text-white placeholder-gray-400 transition-all duration-200 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:border-white"
+              className="w-full p-3 text-[#2A5C54] placeholder-gray-400 transition-all duration-200 bg-white border border-[#34C759] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FFBB77] focus:border-[#FFBB77]"
               required
             />
           </div>
 
           <button
             type="submit"
-            className="w-full px-4 py-3 font-medium text-black transition-all duration-200 bg-white rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="w-full px-4 py-3 font-medium text-white transition-all duration-200 bg-[#FFBB77] rounded-md hover:bg-[#FFA955] focus:outline-none focus:ring-2 focus:ring-[#34C759] focus:ring-offset-2 focus:ring-offset-white"
           >
             Sign Up
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-gray-400">
+          <p className="text-[#2A5C54]">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-medium text-white transition-all duration-200 hover:text-gray-300"
+              className="font-medium text-[#34C759] transition-all duration-200 hover:text-[#28A745]"
             >
               Login here
             </Link>

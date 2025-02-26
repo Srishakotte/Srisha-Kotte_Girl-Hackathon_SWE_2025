@@ -11,20 +11,20 @@ import {
 } from "firebase/firestore";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { jsPDF } from "jspdf";
-import "jspdf-autotable"; // For table support in jsPDF
+import "jspdf-autotable";
 
 const API_KEY = process.env.REACT_APP_GOOGLE_GENERATIVE_AI_API_KEY;
 
 const TaxAssistant = () => {
   const [incomeText, setIncomeText] = useState("");
-  const [selectedITR, setSelectedITR] = useState("ITR1"); // Default ITR type
+  const [selectedITR, setSelectedITR] = useState("ITR1");
   const [analysis, setAnalysis] = useState(null);
   const [taxHistory, setTaxHistory] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
-  const [validationPopup, setValidationPopup] = useState(""); // For validation messages
-  const [error, setError] = useState(null); // Add error state here
+  const [validationPopup, setValidationPopup] = useState("");
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const taxSlabs = [
@@ -37,18 +37,17 @@ const TaxAssistant = () => {
     { upTo: Infinity, rate: 0.30 },
   ];
 
-  // ITR eligibility criteria (simplified for demonstration)
   const itrCriteria = {
     ITR1: {
-      maxIncome: 5000000, // Up to ₹50 lakh
-      sources: ["Salary", "Pension", "One House Property", "Other Sources"],
+      maxIncome: 5000000,
+      sources: ["Salary", "Pension", "Rental Income", "Other Sources"],
     },
     ITR2: {
-      minIncome: 5000000, // Above ₹50 lakh or specific cases
+      minIncome: 5000000,
       sources: [
         "Salary",
         "Pension",
-        "Multiple House Properties",
+        "Rental Income",
         "Capital Gains",
         "Other Sources",
         "Foreign Income",
@@ -58,8 +57,8 @@ const TaxAssistant = () => {
       sources: [
         "Salary",
         "Pension",
-        "House Property",
-        "Business/Profession",
+        "Rental Income",
+        "Freelance Income",
         "Capital Gains",
         "Other Sources",
         "Foreign Income",
@@ -104,43 +103,65 @@ const TaxAssistant = () => {
     lines.forEach((line) => {
       const parts = line.split(":");
       if (parts.length === 2) {
-        const key = parts[0].trim();
+        let key = parts[0].trim();
         const value = parseFloat(parts[1].trim().replace(/,/g, ""));
-        if (!isNaN(value)) incomeMap[key] = value;
+        if (!isNaN(value)) {
+          // Normalize income source names
+          key = key.toLowerCase();
+          if (key.includes("salary") || key.includes("pension")) key = "Salary";
+          else if (key.includes("rent") || key.includes("rental")) key = "Rental Income";
+          else if (key.includes("freelance") || key.includes("business")) key = "Freelance Income";
+          else if (key.includes("capital")) key = "Capital Gains";
+          else if (key.includes("foreign")) key = "Foreign Income";
+          else if (key.includes("other")) key = "Other Sources";
+          else if (key.includes("investment")) key = "Other Sources"; // Assuming investment income falls here
+          else if (key.includes("health") || key.includes("insurance") || key.includes("section")) key = `Deduction ${key}`; // Deductions
+          incomeMap[key] = value;
+        }
       }
     });
     return incomeMap;
   };
 
   const classifyIncome = (incomeMap) => {
-    const taxable = {
-      Salary: incomeMap["Salary"] || 0,
-      "Freelance Income": incomeMap["Freelance Income"] || 0,
-      "Rental Income": incomeMap["Rent"] || 0,
-    };
+    const taxable = {};
     const nonTaxable = {};
+    const deductions = {};
+
     for (const [key, value] of Object.entries(incomeMap)) {
-      if (!["Salary", "Freelance Income", "Rent"].includes(key)) {
+      if (key.startsWith("Deduction")) {
+        deductions[key.replace("Deduction ", "")] = value;
+      } else if (["Salary", "Freelance Income", "Rental Income", "Capital Gains", "Foreign Income"].includes(key)) {
+        taxable[key] = value;
+      } else {
         nonTaxable[key] = value;
       }
     }
-    return { taxable, nonTaxable };
+
+    return { taxable, nonTaxable, deductions };
   };
 
   const validateITRSelection = (incomeMap, totalIncome) => {
     const selectedCriteria = itrCriteria[selectedITR];
-    const incomeSources = Object.keys(incomeMap);
+    const incomeSources = Object.keys(incomeMap).filter(key => !key.startsWith("Deduction"));
 
-    // Check income limits
-    if (selectedITR === "ITR1" && totalIncome > selectedCriteria.maxIncome) {
-      return "Income exceeds ₹50 lakh. Please select ITR2 or ITR3.";
-    }
-    if (selectedITR === "ITR2" && totalIncome <= itrCriteria.ITR1.maxIncome && !incomeSources.some((source) => !itrCriteria.ITR1.sources.includes(source))) {
-      return "Income and sources qualify for ITR1. Please select ITR1.";
+    if (selectedITR === "ITR1") {
+      if (totalIncome > selectedCriteria.maxIncome) {
+        return "Income exceeds ₹50 lakh. Please select ITR2 or ITR3.";
+      }
+      if (Object.keys(incomeMap).filter(k => k === "Rental Income").length > 1) {
+        return "ITR1 supports only one house property. Please select ITR2 or ITR3 for multiple properties.";
+      }
     }
 
-    // Check income sources
-    const invalidSources = incomeSources.filter((source) => !selectedCriteria.sources.includes(source));
+    if (selectedITR === "ITR2" && totalIncome <= itrCriteria.ITR1.maxIncome) {
+      const itr1Sources = itrCriteria.ITR1.sources;
+      if (!incomeSources.some(source => !itr1Sources.includes(source))) {
+        return "Income and sources qualify for ITR1. Please select ITR1.";
+      }
+    }
+
+    const invalidSources = incomeSources.filter(source => !selectedCriteria.sources.includes(source));
     if (invalidSources.length > 0) {
       return `Selected ITR (${selectedITR}) does not support these sources: ${invalidSources.join(", ")}. Please select an appropriate ITR type.`;
     }
@@ -152,7 +173,7 @@ const TaxAssistant = () => {
     try {
       const prompt = `Given these income details: ${JSON.stringify(
         incomeDetails
-      )}, provide 3 specific tax saving suggestions. Format each with type, suggestion, and impact.`;
+      )}, provide 3 specific tax saving suggestions for Indian tax laws. Format each with type, suggestion, and impact.`;
       const botResponse = await fetchGeminiResponse(prompt);
       return JSON.parse(botResponse);
     } catch (error) {
@@ -172,11 +193,11 @@ const TaxAssistant = () => {
         alert("Please enter valid income details");
         return;
       }
-      const { taxable, nonTaxable } = classifyIncome(incomeMap);
-      const totalIncome = Object.values(incomeMap).reduce((sum, val) => sum + val, 0);
-      const totalTaxableIncome = Object.values(taxable).reduce((sum, val) => sum + val, 0);
+      const { taxable, nonTaxable, deductions } = classifyIncome(incomeMap);
+      const totalIncome = Object.values({ ...taxable, ...nonTaxable }).reduce((sum, val) => sum + val, 0);
+      const totalDeductions = Object.values(deductions).reduce((sum, val) => sum + val, 0);
+      const totalTaxableIncome = Math.max(0, Object.values(taxable).reduce((sum, val) => sum + val, 0) - totalDeductions);
 
-      // Validate ITR selection
       const validationMessage = validateITRSelection(incomeMap, totalIncome);
       if (validationMessage) {
         setValidationPopup(validationMessage);
@@ -192,6 +213,7 @@ const TaxAssistant = () => {
         incomeDetails: incomeMap,
         taxable,
         nonTaxable,
+        deductions,
         totalIncome,
         totalTaxableIncome,
         taxLiability,
@@ -200,13 +222,12 @@ const TaxAssistant = () => {
 
       await addDoc(collection(db, "income_records"), analysisResult);
       setAnalysis(analysisResult);
-      setError(null); // Clear any previous error
+      setError(null);
       alert("Tax analysis saved successfully!");
-      // Automatically generate and download the PDF report after analysis
       handleDownloadReport();
-    } catch (error) { // Explicitly declare 'error' as a parameter
+    } catch (error) {
       console.error("Error:", error);
-      setError(error.message || "An error occurred while saving tax analysis"); // Set error state
+      setError(error.message || "An error occurred while saving tax analysis");
       alert(`Error saving tax analysis: ${error.message}`);
     }
   };
@@ -218,7 +239,7 @@ const TaxAssistant = () => {
     }
     const doc = new jsPDF();
     doc.setFontSize(10);
-    generateTaxReportAsTable(doc, analysis, analysis.itrType); // Use ITR type for the report
+    generateTaxReportAsTable(doc, analysis, analysis.itrType);
     doc.save(`${analysis.itrType}_Tax_Report.pdf`);
   };
 
@@ -226,11 +247,9 @@ const TaxAssistant = () => {
     if (!analysis) return;
 
     const formatAmount = (amount) => `₹${(amount || 0).toLocaleString("en-IN")}`;
-    const incomeDetails = analysis.incomeDetails || {}; // Default to empty object if undefined
-    const totalDeductions = Object.entries(incomeDetails)
-      .filter(([key]) => typeof key === "string" && key.includes("Section")) // Ensure key is a string
-      .reduce((sum, [, val]) => sum + (Number(val) || 0), 0); // Ensure val is a number
-    const netTaxableIncome = Math.max(0, analysis.totalTaxableIncome - totalDeductions);
+    const incomeDetails = analysis.incomeDetails || {};
+    const totalDeductions = Object.values(analysis.deductions || {}).reduce((sum, val) => sum + val, 0);
+    const netTaxableIncome = Math.max(0, analysis.totalTaxableIncome);
 
     let tableData = [];
     let tableHeaders = ["Field", "Details"];
@@ -239,25 +258,23 @@ const TaxAssistant = () => {
       tableData = [
         ["Form", "INDIAN INCOME TAX RETURN - ITR-1 (SAHAJ)"],
         ["Assessment Year", "2025-26"],
-        ["", ""], // Spacer
+        ["", ""],
         ["PART B: GROSS TOTAL INCOME"],
-        ["B1. Income from Salary/Pension", formatAmount(analysis.taxable["Salary"] || analysis.taxable["Income from Salary/Pension"] || 0)],
-        ["B2. Income from One House Property", formatAmount(analysis.taxable["Rental Income"] || analysis.taxable["Income from House Property"] || 0)],
-        ["B3. Income from Other Sources", formatAmount(analysis.taxable["Other Sources"] || analysis.taxable["Income from Other Sources"] || 0)],
-        ["B4. Gross Total Income", formatAmount(analysis.totalTaxableIncome)],
-        ["", ""], // Spacer
+        ["B1. Income from Salary/Pension", formatAmount(analysis.taxable["Salary"] || 0)],
+        ["B2. Income from One House Property", formatAmount(analysis.taxable["Rental Income"] || 0)],
+        ["B3. Income from Other Sources", formatAmount(analysis.taxable["Other Sources"] || 0)],
+        ["B4. Gross Total Income", formatAmount(analysis.totalTaxableIncome + totalDeductions)],
+        ["", ""],
         ["PART D: DEDUCTIONS AND TAXABLE TOTAL INCOME"],
-        ...Object.entries(incomeDetails)
-          .filter(([key]) => typeof key === "string" && key.includes("Section")) // Ensure key is a string
-          .map(([key, value]) => [`D${key.split(" ")[1] || "1"}. ${key}`, formatAmount(Number(value) || 0)]), // Ensure value is a number
+        ...Object.entries(analysis.deductions || {}).map(([key, value]) => [`D${key.split(" ")[1] || "1"}. ${key}`, formatAmount(value)]),
         ["Total Deductions", formatAmount(totalDeductions)],
         ["Total Taxable Income", formatAmount(netTaxableIncome)],
-        ["", ""], // Spacer
+        ["", ""],
         ["PART E: COMPUTATION OF TAX PAYABLE"],
         ["E1. Tax Payable on Total Income", formatAmount(analysis.taxLiability)],
         ["E2. Rebate u/s 87A", formatAmount(analysis.taxLiability <= 500000 ? Math.min(analysis.taxLiability, 12500) : 0)],
         ["E3. Tax Payable after Rebate", formatAmount(analysis.taxLiability > 500000 ? analysis.taxLiability : Math.max(0, analysis.taxLiability - 12500))],
-        ["", ""], // Spacer
+        ["", ""],
         ["TAX-SAVING SUGGESTIONS"],
         ...analysis.suggestions.map((s, idx) => [`Suggestion ${idx + 1}`, `${s.type}: ${s.suggestion} (Impact: ${s.impact})`]),
       ];
@@ -265,25 +282,23 @@ const TaxAssistant = () => {
       tableData = [
         ["Form", "INDIAN INCOME TAX RETURN - ITR-2"],
         ["Assessment Year", "2025-26"],
-        ["", ""], // Spacer
+        ["", ""],
         ["PART B-TI: COMPUTATION OF TOTAL INCOME"],
-        ["1. Income from Salary/Pension", formatAmount(analysis.taxable["Salary"] || analysis.taxable["Income from Salary/Pension"] || 0)],
-        ["2. Income from House Property", formatAmount(analysis.taxable["Rental Income"] || analysis.taxable["Income from House Property"] || 0)],
-        ["3. Income from Capital Gains", formatAmount(analysis.taxable["Capital Gains"] || analysis.taxable["Income from Capital Gains"] || 0)],
-        ["4. Income from Other Sources", formatAmount(analysis.taxable["Other Sources"] || analysis.taxable["Income from Other Sources"] || 0)],
-        ["5. Total Income", formatAmount(analysis.totalTaxableIncome)],
+        ["1. Income from Salary/Pension", formatAmount(analysis.taxable["Salary"] || 0)],
+        ["2. Income from House Property", formatAmount(analysis.taxable["Rental Income"] || 0)],
+        ["3. Income from Capital Gains", formatAmount(analysis.taxable["Capital Gains"] || 0)],
+        ["4. Income from Other Sources", formatAmount(analysis.taxable["Other Sources"] || 0)],
+        ["5. Total Income", formatAmount(analysis.totalTaxableIncome + totalDeductions)],
         ["6. Deductions under Chapter VI-A", ""],
-        ...Object.entries(incomeDetails)
-          .filter(([key]) => typeof key === "string" && key.includes("Section")) // Ensure key is a string
-          .map(([key, value]) => [`   ${String.fromCharCode(97 + Object.keys(incomeDetails).filter(k => typeof k === "string" && k.includes("Section")).indexOf(key))}. ${key}`, formatAmount(Number(value) || 0)]), // Ensure value is a number
+        ...Object.entries(analysis.deductions || {}).map(([key, value], idx) => [`   ${String.fromCharCode(97 + idx)}. ${key}`, formatAmount(value)]),
         ["   Total Deductions", formatAmount(totalDeductions)],
         ["7. Total Taxable Income", formatAmount(netTaxableIncome)],
-        ["", ""], // Spacer
+        ["", ""],
         ["PART B-TTI: COMPUTATION OF TAX LIABILITY"],
         ["1. Tax Payable on Total Income", formatAmount(analysis.taxLiability)],
         ["2. Rebate u/s 87A", formatAmount(analysis.taxLiability <= 500000 ? Math.min(analysis.taxLiability, 12500) : 0)],
         ["3. Tax Payable after Rebate", formatAmount(analysis.taxLiability > 500000 ? analysis.taxLiability : Math.max(0, analysis.taxLiability - 12500))],
-        ["", ""], // Spacer
+        ["", ""],
         ["TAX-SAVING SUGGESTIONS"],
         ...analysis.suggestions.map((s, idx) => [`Suggestion ${idx + 1}`, `${s.type}: ${s.suggestion} (Impact: ${s.impact})`]),
       ];
@@ -291,26 +306,24 @@ const TaxAssistant = () => {
       tableData = [
         ["Form", "INDIAN INCOME TAX RETURN - ITR-3"],
         ["Assessment Year", "2025-26"],
-        ["", ""], // Spacer
+        ["", ""],
         ["PART B-TI: COMPUTATION OF TOTAL INCOME"],
-        ["1. Income from Salary/Pension", formatAmount(analysis.taxable["Salary"] || analysis.taxable["Income from Salary/Pension"] || 0)],
-        ["2. Income from House Property", formatAmount(analysis.taxable["Rental Income"] || analysis.taxable["Income from House Property"] || 0)],
-        ["3. Profits and Gains from Business/Profession", formatAmount(analysis.taxable["Freelance Income"] || analysis.taxable["Business/Profession"] || 0)],
-        ["4. Income from Capital Gains", formatAmount(analysis.taxable["Capital Gains"] || analysis.taxable["Income from Capital Gains"] || 0)],
-        ["5. Income from Other Sources", formatAmount(analysis.taxable["Other Sources"] || analysis.taxable["Income from Other Sources"] || 0)],
-        ["6. Total Income", formatAmount(analysis.totalTaxableIncome)],
+        ["1. Income from Salary/Pension", formatAmount(analysis.taxable["Salary"] || 0)],
+        ["2. Income from House Property", formatAmount(analysis.taxable["Rental Income"] || 0)],
+        ["3. Profits and Gains from Business/Profession", formatAmount(analysis.taxable["Freelance Income"] || 0)],
+        ["4. Income from Capital Gains", formatAmount(analysis.taxable["Capital Gains"] || 0)],
+        ["5. Income from Other Sources", formatAmount(analysis.taxable["Other Sources"] || 0)],
+        ["6. Total Income", formatAmount(analysis.totalTaxableIncome + totalDeductions)],
         ["7. Deductions under Chapter VI-A", ""],
-        ...Object.entries(incomeDetails)
-          .filter(([key]) => typeof key === "string" && key.includes("Section")) // Ensure key is a string
-          .map(([key, value]) => [`   ${String.fromCharCode(97 + Object.keys(incomeDetails).filter(k => typeof k === "string" && k.includes("Section")).indexOf(key))}. ${key}`, formatAmount(Number(value) || 0)]), // Ensure value is a number
+        ...Object.entries(analysis.deductions || {}).map(([key, value], idx) => [`   ${String.fromCharCode(97 + idx)}. ${key}`, formatAmount(value)]),
         ["   Total Deductions", formatAmount(totalDeductions)],
         ["8. Total Taxable Income", formatAmount(netTaxableIncome)],
-        ["", ""], // Spacer
+        ["", ""],
         ["PART B-TTI: COMPUTATION OF TAX LIABILITY"],
         ["1. Tax Payable on Total Income", formatAmount(analysis.taxLiability)],
         ["2. Rebate u/s 87A", formatAmount(analysis.taxLiability <= 500000 ? Math.min(analysis.taxLiability, 12500) : 0)],
         ["3. Tax Payable after Rebate", formatAmount(analysis.taxLiability > 500000 ? analysis.taxLiability : Math.max(0, analysis.taxLiability - 12500))],
-        ["", ""], // Spacer
+        ["", ""],
         ["TAX-SAVING SUGGESTIONS"],
         ...analysis.suggestions.map((s, idx) => [`Suggestion ${idx + 1}`, `${s.type}: ${s.suggestion} (Impact: ${s.impact})`]),
       ];
@@ -322,9 +335,9 @@ const TaxAssistant = () => {
       startY: 10,
       theme: "grid",
       styles: { fontSize: 8, cellPadding: 2, overflow: "linebreak", font: "helvetica" },
-      headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255] },
-      bodyStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
+      headStyles: { fillColor: [255, 187, 119], textColor: [255, 255, 255] },
+      bodyStyles: { fillColor: [255, 255, 255], textColor: [42, 92, 84] },
+      alternateRowStyles: { fillColor: [230, 240, 234] },
     });
   };
 
@@ -370,20 +383,20 @@ const TaxAssistant = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#439e8f] via-[#80c89c] to-[#FFFFFF]">
       {/* Navbar */}
-      <nav className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
-        <h1 className="text-xl font-semibold text-white">Tax Assistant</h1>
+      <nav className="flex items-center justify-between p-4 bg-white border-b border-[#FFBB77] shadow-md">
+        <h1 className="text-2xl font-bold text-[#122261]">FIN TAX</h1>
         <div className="flex gap-3">
           <button
             onClick={() => navigate("/tax-history")}
-            className="px-4 py-2 font-medium text-white transition-all duration-200 bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="px-4 py-2 font-medium text-white bg-[#122261] border border-[#FFBB77] rounded-md hover:bg-[#345896] focus:outline-none focus:ring-2 focus:ring-[#FFBB77] focus:ring-offset-2 focus:ring-offset-white transition-all duration-200"
           >
             History
           </button>
           <button
             onClick={handleDownloadReport}
-            className="px-4 py-2 font-medium text-black transition-all duration-200 bg-white rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="px-4 py-2 font-medium text-white bg-[#122261] rounded-md hover:bg-[#345896] focus:outline-none focus:ring-2 focus:ring-[#34C759] focus:ring-offset-2 focus:ring-offset-white transition-all duration-200 disabled:bg-gray-300 disabled:text-gray-500"
             disabled={!analysis}
           >
             Download {selectedITR} Report
@@ -393,43 +406,43 @@ const TaxAssistant = () => {
 
       <div className="flex flex-1">
         {/* Sidebar */}
-        <aside className="w-1/3 p-6 overflow-y-auto bg-gray-800 border-r border-gray-700">
+        <aside className="w-1/3 p-6 overflow-y-auto bg-white border-r border-[#FFBB77]">
           <div className="mb-6">
-            <label htmlFor="itrType" className="block mb-1 text-sm font-medium text-white">
+            <label htmlFor="itrType" className="block mb-1 text-sm font-medium text-[#34C759]">
               Select ITR Type
             </label>
             <select
               id="itrType"
               value={selectedITR}
               onChange={(e) => setSelectedITR(e.target.value)}
-              className="w-full p-2 text-white bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-white focus:border-white"
+              className="w-full p-2 text-[#2A5C54] bg-white border border-[#34C759] rounded-md focus:outline-none focus:ring-1 focus:ring-[#FFBB77] focus:border-[#FFBB77]"
             >
               <option value="ITR1">ITR-1 (SAHAJ)</option>
               <option value="ITR2">ITR-2</option>
               <option value="ITR3">ITR-3</option>
             </select>
-            <div className="mt-2 text-sm text-gray-400">
-              <p><strong>ITR-1:</strong> For salaried people earning less than ₹50 lakhs with one house property, no capital gains.</p>
-              <p><strong>ITR-2:</strong> For salaried people with capital gains, multiple house properties, or total income > ₹50 lakhs.</p>
-              <p><strong>ITR-3:</strong> For individuals with business or professional income, and may include capital gains or multiple house properties.</p>
+            <div className="mt-2 text-sm text-[#2A5C54]">
+              <p><strong>ITR-1:</strong> For income up to ₹50 lakhs from salary, one house property, or other sources.</p>
+              <p><strong>ITR-2:</strong> For income > ₹50 lakhs, capital gains, or multiple properties.</p>
+              <p><strong>ITR-3:</strong> For business/profession income (e.g., freelancing).</p>
             </div>
           </div>
-          {error && ( // Render error message if it exists
-            <p className="mb-4 text-sm text-red-400">{error}</p>
+          {error && (
+            <p className="mb-4 text-sm text-[#FF6666]">{error}</p>
           )}
           {analysis && (
             <>
               <div className="mb-6">
-                <h3 className="mb-2 text-sm font-medium text-gray-400">Income Classification</h3>
-                <table className="w-full text-sm text-white">
+                <h3 className="mb-2 text-sm font-medium text-[#34C759]">Income Classification</h3>
+                <table className="w-full text-sm text-[#2A5C54]">
                   <thead>
-                    <tr className="border-b border-gray-700">
+                    <tr className="border-b border-[#FFBB77]">
                       <th className="py-2 text-left">Type</th>
                       <th className="py-2 text-right">Amount</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-gray-700">
+                    <tr className="border-b border-[#FFBB77]">
                       <td className="py-2 font-medium">Taxable Income</td>
                       <td className="py-2 text-right">₹{analysis.totalTaxableIncome.toLocaleString("en-IN")}</td>
                     </tr>
@@ -441,7 +454,7 @@ const TaxAssistant = () => {
                         </tr>
                       )
                     ))}
-                    <tr className="border-b border-gray-700">
+                    <tr className="border-b border-[#FFBB77]">
                       <td className="py-2 font-medium">Non-Taxable Income</td>
                       <td className="py-2 text-right">
                         ₹{Object.values(analysis.nonTaxable).reduce((sum, val) => sum + val, 0).toLocaleString("en-IN")}
@@ -455,9 +468,23 @@ const TaxAssistant = () => {
                         </tr>
                       )
                     ))}
+                    <tr className="border-b border-[#FFBB77]">
+                      <td className="py-2 font-medium">Deductions</td>
+                      <td className="py-2 text-right">
+                        ₹{Object.values(analysis.deductions).reduce((sum, val) => sum + val, 0).toLocaleString("en-IN")}
+                      </td>
+                    </tr>
+                    {Object.entries(analysis.deductions).map(([key, value]) => (
+                      value > 0 && (
+                        <tr key={key}>
+                          <td className="py-1 pl-4">{key}</td>
+                          <td className="py-1 text-right">₹{value.toLocaleString("en-IN")}</td>
+                        </tr>
+                      )
+                    ))}
                   </tbody>
                   <tfoot>
-                    <tr className="border-t border-gray-700">
+                    <tr className="border-t border-[#FFBB77]">
                       <td className="py-2 font-medium">Total Income</td>
                       <td className="py-2 text-right">₹{analysis.totalIncome.toLocaleString("en-IN")}</td>
                     </tr>
@@ -470,12 +497,12 @@ const TaxAssistant = () => {
               </div>
 
               <div>
-                <h3 className="mb-2 text-sm font-medium text-gray-400">AI Tax Suggestions</h3>
-                <ul className="space-y-3 text-white">
+                <h3 className="mb-2 text-sm font-medium text-[#34C759]">AI Tax Suggestions</h3>
+                <ul className="space-y-3 text-[#2A5C54]">
                   {analysis.suggestions.map((suggestion, index) => (
-                    <li key={index} className="p-3 bg-gray-700 rounded-md">
-                      <span className="font-medium">{suggestion.type}:</span> {suggestion.suggestion} <br />
-                      <span className="text-gray-400">Impact: {suggestion.impact}</span>
+                    <li key={index} className="p-3 bg-[#E6F0EA] rounded-md">
+                      <span className="font-medium text-[#34C759]">{suggestion.type}:</span> {suggestion.suggestion} <br />
+                      <span className="text-[#2A5C54]">Impact: {suggestion.impact}</span>
                     </li>
                   ))}
                 </ul>
@@ -484,17 +511,16 @@ const TaxAssistant = () => {
           )}
         </aside>
 
-        /* Body */
         <main className="flex-1 p-6">
           <div className="mb-4">
-            <label htmlFor="itrType" className="block mb-1 text-sm font-medium text-white">
+            <label htmlFor="itrType" className="block mb-1 text-sm font-medium text-[#06091c]">
               Select ITR Type
             </label>
             <select
               id="itrType"
               value={selectedITR}
               onChange={(e) => setSelectedITR(e.target.value)}
-              className="w-full p-2 text-white bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-white focus:border-white"
+              className="w-full p-2 text-[#2A5C54] bg-white border border-[#34C759] rounded-md focus:outline-none focus:ring-1 focus:ring-[#FFBB77] focus:border-[#FFBB77]"
             >
               <option value="ITR1">ITR-1 (SAHAJ)</option>
               <option value="ITR2">ITR-2</option>
@@ -504,14 +530,14 @@ const TaxAssistant = () => {
           <textarea
             value={incomeText}
             onChange={(e) => setIncomeText(e.target.value)}
-            placeholder="Enter your income details (e.g., Salary: 500000)"
-            className="w-full h-40 p-3 mb-4 text-white placeholder-gray-400 transition-all duration-200 bg-gray-800 border border-gray-600 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-white focus:border-white"
+            placeholder="Enter your income details (e.g., Salary: 500000, Rent: 200000, Freelance: 150000, Health Insurance: 25000)"
+            className="w-full h-40 p-3 mb-4 text-[#2A5C54] placeholder-gray-400 transition-all duration-200 bg-white border border-[#34C759] rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-[#FFBB77] focus:border-[#FFBB77]"
           />
           <button
             onClick={handleAnalyze}
-            className="w-full px-4 py-2 mb-6 font-medium text-black transition-all duration-200 bg-white rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="w-full px-4 py-2 mb-6 font-medium text-white bg-[#FFBB77] rounded-md hover:bg-[#FFA955] focus:outline-none focus:ring-2 focus:ring-[#34C759] focus:ring-offset-2 focus:ring-offset-white transition-all duration-200"
           >
-            Analyze 
+            Analyze
           </button>
         </main>
       </div>
@@ -519,11 +545,11 @@ const TaxAssistant = () => {
       {/* Validation Popup */}
       {validationPopup && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="p-6 bg-gray-800 rounded-lg shadow-lg">
-            <p className="mb-4 text-white">{validationPopup}</p>
+          <div className="p-6 bg-white rounded-lg shadow-lg border border-[#FFBB77]">
+            <p className="mb-4 text-[#2A5C54]">{validationPopup}</p>
             <button
               onClick={() => setValidationPopup("")}
-              className="px-4 py-2 font-medium text-black bg-white rounded-md hover:bg-gray-200"
+              className="px-4 py-2 font-medium text-white bg-[#FFBB77] rounded-md hover:bg-[#FFA955]"
             >
               OK
             </button>
@@ -535,7 +561,7 @@ const TaxAssistant = () => {
       <div className="fixed z-50 bottom-6 right-6">
         <button
           onClick={() => setIsChatOpen(!isChatOpen)}
-          className="p-3 text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+          className="p-3 text-white bg-[#122261] rounded-full shadow-lg hover:bg-[#345896] focus:outline-none focus:ring-2 focus:ring-[#FFBB77] focus:ring-offset-2 focus:ring-offset-white"
         >
           <svg
             className="w-6 h-6"
@@ -554,8 +580,8 @@ const TaxAssistant = () => {
         </button>
 
         {isChatOpen && (
-          <div className="absolute right-0 flex flex-col bg-gray-800 border border-gray-700 rounded-lg shadow-xl bottom-16 w-80 h-96">
-            <div className="p-3 bg-gray-700 rounded-t-lg">
+          <div className="absolute right-0 flex flex-col bg-white border border-[#FFBB77] rounded-lg shadow-xl bottom-16 w-80 h-96">
+            <div className="p-3 bg-[#FFBB77] rounded-t-lg">
               <h3 className="font-medium text-white">Tax Chat Assistant</h3>
             </div>
             <div className="flex-1 p-3 overflow-y-auto">
@@ -566,7 +592,7 @@ const TaxAssistant = () => {
                 >
                   <div
                     className={`max-w-[70%] p-2 rounded-lg ${
-                      msg.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-600 text-white"
+                      msg.sender === "user" ? "bg-[#34C759] text-white" : "bg-[#E6F0EA] text-[#2A5C54]"
                     }`}
                   >
                     {msg.text}
@@ -574,18 +600,18 @@ const TaxAssistant = () => {
                 </div>
               ))}
             </div>
-            <form onSubmit={handleChatSubmit} className="p-3 border-t border-gray-700">
+            <form onSubmit={handleChatSubmit} className="p-3 border-t border-[#FFBB77]">
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   placeholder="Ask about taxes..."
-                  className="flex-1 p-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="flex-1 p-2 text-[#2A5C54] bg-white border border-[#34C759] rounded-md focus:outline-none focus:ring-1 focus:ring-[#FFBB77]"
                 />
                 <button
                   type="submit"
-                  className="px-3 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 text-white bg-[#34C759] rounded-md hover:bg-[#28A745] focus:outline-none focus:ring-2 focus:ring-[#FFBB77]"
                 >
                   Send
                 </button>

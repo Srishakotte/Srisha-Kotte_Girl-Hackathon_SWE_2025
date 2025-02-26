@@ -16,29 +16,38 @@ const Homepage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#2A5C54] via-[#E6F0EA] to-[#FFFFFF] p-6">
+      {/* Image Section */}
+      <div className="mb-8">
+        <img
+          src="https://i.pinimg.com/474x/4e/f9/df/4ef9dfc70509752a4ad5612ef7107664.jpg"
+          alt="Decorative Financial Illustration"
+          className="w-48 h-48 rounded-full border-4 border-[#FFBB77] shadow-lg"
+        />
+      </div>
+
       {/* Content */}
-      <div className="text-center text-white p-8 rounded-lg max-w-2xl w-full bg-gray-800 border border-gray-700">
-        <h1 className="text-6xl font-bold mb-6">
-          FINTAX 
+      <div className="text-center text-[#2A5C54] p-8 rounded-lg max-w-2xl w-full bg-white border border-[#FFBB77] shadow-lg">
+        <h1 className="text-6xl font-bold mb-6 text-[#FFBB77]">
+          FINTAX
         </h1>
-        <p className="text-xl mb-12 text-gray-300">
-          Your Financial coach for tax calculations and planning
+        <p className="text-xl mb-12 text-[#34C759]">
+          Your Financial Coach for Tax Calculations and Planning
         </p>
 
         {/* Action Buttons */}
         <div className="space-y-6">
           <button
             onClick={() => navigate("/tax-assistant")}
-            className="w-64 bg-gray-100 text-black font-semibold text-lg px-8 py-3 rounded-md border border-gray-600 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200"
+            className="w-64 bg-[#FFBB77] text-white font-semibold text-lg px-8 py-3 rounded-md border border-[#34C759] hover:bg-[#FFA955] focus:outline-none focus:ring-2 focus:ring-[#34C759] focus:ring-offset-2 focus:ring-offset-white transition-all duration-200"
           >
             Open Tax Assistant
           </button>
-          
+
           <div>
             <button
               onClick={handleLogout}
-              className="w-64 bg-gray-100 text-black font-semibold text-lg px-8 py-3 rounded-md border border-gray-600 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200"
+              className="w-64 bg-[#FFBB77] text-white font-semibold text-lg px-8 py-3 rounded-md border border-[#34C759] hover:bg-[#FFA955] focus:outline-none focus:ring-2 focus:ring-[#34C759] focus:ring-offset-2 focus:ring-offset-white transition-all duration-200"
             >
               Logout
             </button>
@@ -46,7 +55,7 @@ const Homepage = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-16 text-gray-400 text-sm">
+        <div className="mt-16 text-[#2A5C54] text-sm">
           <p>© 2024 AI Tax Assistant. All rights reserved.</p>
         </div>
       </div>
