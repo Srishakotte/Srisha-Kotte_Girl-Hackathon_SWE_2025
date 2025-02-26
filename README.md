@@ -99,7 +99,8 @@ npx tailwindcss init -p
 4. Run the Application  
    ```bash  
    npm start  
-   ```  
+   ```
+   (wait for 5 to 10 seconds)
    Open http://localhost:3000 to start!  
 
 ---
