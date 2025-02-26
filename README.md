@@ -1,6 +1,6 @@
 # Srisha-Kotte_Girl-Hackathon_SWE_2025
 
-# FINTAX - Your AI-Powered Tax Filing Companion  ([https://tax-assistant-38242.web.app/])(Try FINTAX live! )
+# FINTAX - Your AI-Powered Tax Filing Companion  ([https://tax-assistant-38242.web.app/])   (Try FINTAX live! )
 Simplify taxes. Maximize savings. File with confidence.  
 
 ## Overview  
@@ -72,7 +72,7 @@ FINTAX is an AI-driven platform that makes tax filing accessible and efficient f
    ```  
    ```bash  
    npm install  
-  npm install react-google-charts  
+   npm install react-google-charts  
    npm install react react-dom react-router-dom firebase @google/generative-ai jspdf jspdf-autotable  
 
    ```  
@@ -99,7 +99,8 @@ npx tailwindcss init -p
 4. Run the Application  
    ```bash  
    npm start  
-   ```  
+   ```
+   (wait for 5 to 10 seconds)
    Open http://localhost:3000 to start!  
 
 ---
@@ -165,7 +166,6 @@ Try FINTAX live!
 3. Commit (git commit -m "Add feature").  
 4. Push (git push origin feature/new-feature).  
 5. Open a Pull Request.  
-
 
 
 
