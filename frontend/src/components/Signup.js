@@ -15,7 +15,7 @@ const SignUp = () => {
     try {
       const auth = getAuth();
       await createUserWithEmailAndPassword(auth, email, password);
-      navigate("/login");
+      navigate("/home"); // Changed from "/login" to "/home"
       setEmail("");
       setPassword("");
     } catch (error) {
