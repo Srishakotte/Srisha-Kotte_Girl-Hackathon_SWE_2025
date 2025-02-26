@@ -32,7 +32,7 @@ const Homepage = () => {
           FINTAX
         </h1>
         <p className="text-xl mb-12 text-[#34C759]">
-          Your Financial Coach for Tax Calculations and Planning
+          Simplify taxes. Maximize savings. File with confidence.  
         </p>
 
         {/* Action Buttons */}
@@ -56,7 +56,7 @@ const Homepage = () => {
 
         {/* Footer */}
         <div className="mt-16 text-[#2A5C54] text-sm">
-          <p>© 2024 AI Tax Assistant. All rights reserved.</p>
+          <p>© 2025 AI Tax Assistant. All rights reserved.</p>
         </div>
       </div>
     </div>
